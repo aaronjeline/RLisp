@@ -1,11 +1,4 @@
 [[package]]
-name = "RLisp"
-version = "0.1.0"
-dependencies = [
- "nom 4.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "cfg-if"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -31,6 +24,13 @@ version = "4.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "memchr 2.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "rlisp"
+version = "0.1.0"
+dependencies = [
+ "nom 4.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

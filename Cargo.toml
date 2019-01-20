@@ -1,5 +1,5 @@
 [package]
-name = "RLisp"
+name = "rlisp"
 version = "0.1.0"
 authors = ["Aaron Eline <aaroneline.github@gmail.com>"]
 edition = "2018"

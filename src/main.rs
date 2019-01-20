@@ -74,9 +74,35 @@ fn eval_list(input: LinkedList<RValue>, env: &mut Env) -> FResult{
 
     match first.deref() {
         Value::Define => eval_define(list, env),
+        Value::Let => eval_let(list, env),
         _ => function_call(recr_eval_list(list, env)?),
     }
 
+}
+
+fn eval_let(list: LinkedList<RValue>, env: &mut Env) -> FResult{
+    let mut list = list;
+    list.pop_front(); // Remove 'let'
+    // Extract the binding term
+    let binding = match list.pop_front() {
+        Some(v) => Ok(v),
+        None => Err(Errors::FormError),
+    }?;
+    let mut binding = match binding.deref().clone() {
+        Value::List(lst) => Ok(lst),
+        _ => Err(Errors::FormError),
+    }?;
+    binding.push_front(Box::new(Value::Define)); // Bush define to the front
+    // Create a new scope
+    let mut scope = Env::push((*env).clone());
+    // Evaluate the binding in the new scope
+    eval_define(binding, &mut scope)?;
+    // Evaluate body in the new scope
+    let body = match list.pop_front() {
+        Some(body) => Ok(body),
+        None => Err(Errors::FormError),
+    }?;
+    EVAL(body, &mut scope)
 }
 
 fn eval_define(list: LinkedList<RValue>, env: &mut Env) -> FResult {

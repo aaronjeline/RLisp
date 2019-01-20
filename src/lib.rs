@@ -5,6 +5,7 @@ pub type RValue = Box<Value>;
 pub type Params = LinkedList<RValue>;
 pub type FResult = Result<RValue, Errors>;
 
+#[derive(Clone)]
 pub struct Env {
     contents: HashMap<String, Value>,
     past: Option<Box<Env>>,
@@ -29,6 +30,12 @@ impl Env {
         self.contents.insert(symbol, v);
     }
 
+    pub fn push(old: Env) -> Env {
+        let mut n = Env::new();
+        n.past = Some(Box::new(old));
+        n
+    }
+
 
 
 }
@@ -42,7 +49,7 @@ pub enum Errors {
     FormError,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Value {
     Int (i32),
     Str (String),
@@ -52,8 +59,10 @@ pub enum Value {
     False,
     Nil,
     Define,
+    Let,
     Function (fn(Params) -> FResult),
 }
+
 
 impl ToString for Value {
     fn to_string(&self) -> String{
@@ -67,6 +76,7 @@ impl ToString for Value {
             Value::Function (_) =>  String::from("Function"),
             Value::List (lst) => list_to_string(lst),
             Value::Define => String::from("define"),
+            Value::Let => String::from("Let")
         }
     }
 }

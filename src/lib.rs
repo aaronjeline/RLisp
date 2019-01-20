@@ -36,6 +36,12 @@ impl Env {
         n
     }
 
+    pub fn add_all(&mut self, ss: LinkedList<String>, vs: LinkedList<Value>) {
+        for (symbol, value) in ss.iter().zip(vs) {
+            self.set(symbol.to_string(), value);
+        }
+    }
+
 
 
 }
@@ -60,6 +66,7 @@ pub enum Value {
     Nil,
     Define,
     Let,
+    Do,
     Function (fn(Params) -> FResult),
 }
 
@@ -76,7 +83,9 @@ impl ToString for Value {
             Value::Function (_) =>  String::from("Function"),
             Value::List (lst) => list_to_string(lst),
             Value::Define => String::from("define"),
-            Value::Let => String::from("Let")
+            Value::Let => String::from("let"),
+            Value::Do => String::from("do"),
+                
         }
     }
 }
@@ -87,5 +96,4 @@ fn list_to_string(lst: &LinkedList<Box<Value>>) -> String {
                                    |s, next| format!("{} {}", s, next.to_string()));
     format!("({})", contents)
 }
-
 

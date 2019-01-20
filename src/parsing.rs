@@ -19,6 +19,7 @@ fn determinte_symbol(s: String) -> Value {
         "nil" => Value::Nil,
         "define" => Value::Define,
         "let" => Value::Let,
+        "do" => Value::Do,
         _ => Value::Symbol(s)
     }
 }

@@ -2,9 +2,36 @@ use std::collections::LinkedList;
 use std::collections::HashMap;
 
 pub type RValue = Box<Value>;
-pub type Env = Vec<HashMap<String, Value>>;
 pub type Params = LinkedList<RValue>;
 pub type FResult = Result<RValue, Errors>;
+
+pub struct Env {
+    contents: HashMap<String, Value>,
+    past: Option<Box<Env>>,
+}
+
+impl Env {
+    pub fn new() -> Env{
+        Env { contents: HashMap::new(), past: None }
+    }
+
+    pub fn lookup(&self, symbol: String) -> FResult{
+        match self.contents.get(&symbol) {
+            Some(v) => Ok(Box::new((*v).clone())),
+            None => match &self.past {
+                Some(scope) => scope.lookup(symbol),
+                None => Err(Errors::SymbolNotFound(symbol.clone()))
+            }
+        }
+    }
+
+    pub fn set(&mut self, symbol: String, v: Value) {
+        self.contents.insert(symbol, v);
+    }
+
+
+
+}
 
 #[derive(Debug)]
 pub enum Errors {
@@ -12,6 +39,7 @@ pub enum Errors {
     ParseError,
     SymbolNotFound (String),
     NotAFunction,
+    FormError,
 }
 
 #[derive(Clone)]
@@ -23,6 +51,7 @@ pub enum Value {
     True,
     False,
     Nil,
+    Define,
     Function (fn(Params) -> FResult),
 }
 
@@ -37,6 +66,7 @@ impl ToString for Value {
             Value::Nil => String::from("Nil"),
             Value::Function (_) =>  String::from("Function"),
             Value::List (lst) => list_to_string(lst),
+            Value::Define => String::from("define"),
         }
     }
 }
@@ -48,13 +78,4 @@ fn list_to_string(lst: &LinkedList<Box<Value>>) -> String {
     format!("({})", contents)
 }
 
-pub fn lookup(symbol: String, env:&Env) -> FResult{
-    for scope in env {
-        match scope.get(&symbol) {
-            Some(v) => return Ok(Box::new((*v).clone())),
-            None => (),
-        }
-    }
-    Err(Errors::SymbolNotFound(symbol.clone()))
-}
 

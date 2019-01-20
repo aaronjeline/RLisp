@@ -5,3 +5,4 @@ RLisp is a simple Lisp intepreter written in Rust. I'm writing it for the purpos
 ## Working
 1. Parsing, parsing is implemented using _Parsec_
 2. Basic evaluation, Lists represent function calls, symbols perform lookups
+3. `define` special form

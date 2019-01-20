@@ -17,6 +17,7 @@ fn determinte_symbol(s: String) -> Value {
         "true" => Value::True,
         "false" => Value::False,
         "nil" => Value::Nil,
+        "define" => Value::Define,
         _ => Value::Symbol(s)
     }
 }

@@ -9,7 +9,8 @@ fn is_digit(c: char) -> bool {
 }
 
 fn is_alpha(c: char) -> bool {
-    c.is_alphabetic() || c == '+' || c == '-' || c == '*'
+    c.is_alphabetic() || c == '+' || c == '-' || c == '*' || c == '?' || c == '_'
+        || c == '=' || c == '<' || c == '>'
 }
 
 fn determinte_symbol(s: String) -> Value {
@@ -20,9 +21,13 @@ fn determinte_symbol(s: String) -> Value {
         "define" => Value::Define,
         "let" => Value::Let,
         "do" => Value::Do,
+        "if" => Value::If,
+        "fn" => Value::Fn,
+        "eval" => Value::Eval,
         _ => Value::Symbol(s)
     }
 }
+
 
 named!(pub parse_value<Input, RValue>,
        map!(alt!(parse_string   |

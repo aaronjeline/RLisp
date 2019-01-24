@@ -78,6 +78,7 @@ pub enum Value {
     If,
     Fn,
     Eval,
+    Quote,
     Function (fn(Params) -> FResult),
     DynFunc (DynamicFunction),
 }
@@ -129,6 +130,7 @@ impl ToString for Value {
             Value::Fn => String::from("fn"),
             Value::DynFunc (_) => String::from("<Function>"),
             Value::Eval => String::from("eval"),
+            Value::Quote => String::from("quote"),
         }
     }
 }

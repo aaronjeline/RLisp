@@ -32,9 +32,19 @@ pub fn eval_list(input: LinkedList<RValue>, env: &mut Env) -> FResult{
         Value::If => eval_if(list, env),
         Value::Fn => eval_fn(list),
         Value::Eval => eval_eval(list, env),
+        Value::Quote => eval_quote(list),
         _ => handle_function(recr_eval_list(list, env)?, env),
     }
 
+}
+
+fn eval_quote(lst: LinkedList<RValue>) -> FResult {
+    let mut list = lst;
+    list.pop_front(); // Remove quote;
+    match list.front() {
+        Some(v) => Ok(v.clone()),
+        None => Err(Errors::FormError),
+    }
 }
 
 fn eval_let(list: LinkedList<RValue>, env: &mut Env) -> FResult{

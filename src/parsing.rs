@@ -24,6 +24,7 @@ fn determinte_symbol(s: String) -> Value {
         "if" => Value::If,
         "fn" => Value::Fn,
         "eval" => Value::Eval,
+        "quote" => Value::Quote,
         _ => Value::Symbol(s)
     }
 }
@@ -33,7 +34,13 @@ named!(pub parse_value<Input, RValue>,
        map!(alt!(parse_string   |
                  parse_symbol   |
                  parse_int      |
+                 parse_quote    |
                  parse_list), |v| Box::new(v)));
+
+named!(parse_quote<Input, Value>, ws!(do_parse!(
+    _start: tag!("'") >>
+    quoted: parse_value >>
+    (Value::List(vec![Box::new(Value::Quote), quoted].into_iter().collect())))));
 
 named!(parse_list<Input, Value>, ws!(do_parse!(
     _start: tag!("(") >>

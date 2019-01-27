@@ -1,5 +1,7 @@
 use std::collections::LinkedList;
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::Display;
 
 pub type RValue = Box<Value>;
 pub type Params = LinkedList<RValue>;
@@ -63,6 +65,27 @@ pub enum Errors {
     IOError (String),
 }
 
+impl Display for Errors{
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        let str = match self {
+            Errors::TypeError => String::from("Type Error"),
+            Errors::ParseError(s) => format!("Parse Error: {}", s),
+            Errors::SymbolNotFound(s) => format!("Symbol {} is undefined", s),
+            Errors::NotAFunction => String::from("Expected function"),
+            Errors::FormError => String::from("Form Error"),
+            Errors::ArityError (got, exp) => format!("Arity Error: Expected {}, recieved {}", exp, got),
+            Errors::IOError (s) => format!("IO Error: {}", s),
+        };
+        write!(fmt, "{}",str)?;
+        Ok(())
+    }
+
+}
+
+impl Error for Errors{
+
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Int (i32),
@@ -73,12 +96,15 @@ pub enum Value {
     False,
     Nil,
     Define,
+    Defmacro,
     Let,
     Do,
     If,
     Fn,
     Eval,
     Quote,
+    Quasiquote,
+    Unquote,
     Function (fn(Params) -> FResult),
     DynFunc (DynamicFunction),
 }
@@ -109,6 +135,13 @@ impl Value {
             _ => Err(Errors::TypeError),
         }
     }
+
+    pub fn is_pair(&self) -> bool {
+        match self {
+            Value::List(lst) => lst.len() > 0,
+            _ => false,
+        }
+    }
 }
 
 
@@ -124,6 +157,7 @@ impl ToString for Value {
             Value::Function (_) =>  String::from("<Builtin-Function>"),
             Value::List (lst) => list_to_string(lst),
             Value::Define => String::from("define"),
+            Value::Defmacro => String::from("defmacro"),
             Value::Let => String::from("let"),
             Value::Do => String::from("do"),
             Value::If => String::from("if"),
@@ -131,6 +165,8 @@ impl ToString for Value {
             Value::DynFunc (_) => String::from("<Function>"),
             Value::Eval => String::from("eval"),
             Value::Quote => String::from("quote"),
+            Value::Quasiquote => String::from("quasiquote"),
+            Value::Unquote => String::from("unquote"),
         }
     }
 }
@@ -139,13 +175,21 @@ impl ToString for Value {
 pub struct DynamicFunction {
     pub parameters: LinkedList<String>,
     pub body: RValue,
+    pub is_macro: bool,
 }
 
 impl DynamicFunction {
 
     pub fn new(parameters: LinkedList<String>, body: RValue) -> DynamicFunction {
-        DynamicFunction { parameters : parameters, body: body }
+        DynamicFunction { parameters : parameters, body: body , is_macro: false}
     }
+
+    pub fn new_macro(parameters: LinkedList<String>, body: RValue)
+                     -> DynamicFunction {
+        DynamicFunction { parameters : parameters, body: body , is_macro: true}
+    }
+
+
 
 }
 fn list_to_string(lst: &LinkedList<Box<Value>>) -> String {

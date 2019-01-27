@@ -35,7 +35,7 @@ fn main() {
         }
         match rep(buffer, &mut env) {
             Ok(s) => println!("{}", s),
-            Err(e) => println!("Runtime Error: {:?}", e),
+            Err(e) => println!("Runtime Error: {}", e),
         }
     }
     print!("\n");

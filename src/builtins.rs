@@ -18,6 +18,10 @@ pub fn build_init_env() -> Env {
     env.set(String::from("="), Value::Function(equals));
     env.set(String::from("slurp"), Value::Function(slurp));
     env.set(String::from("str"), Value::Function(string));
+    env.set(String::from("cons"), Value::Function(lisp_cons));
+    env.set(String::from("first"), Value::Function(first));
+    env.set(String::from("rest"), Value::Function(rest));
+    env.set(String::from("mod"), Value::Function(modulo));
     env
 }
 
@@ -42,6 +46,30 @@ fn mult(p: Params) -> FResult {
     }
     Ok(Box::new(Value::Int(product)))
 }
+
+fn modulo(p: Params) -> FResult {
+    let mut list = p;
+    let a = match list.pop_front() {
+        Some(b) => match b.deref() {
+            Value::Int(i) => Ok(i.clone()),
+            _ => Err(Errors::TypeError),
+        },
+        None => Err(Errors::ArityError(0,2)),
+    }?;
+
+    let b = match list.pop_front() {
+        Some(b) => match b.deref() {
+            Value::Int(i) => Ok(i.clone()),
+            _ => Err(Errors::TypeError),
+        },
+        None => Err(Errors::ArityError(1,2)),
+    }?;
+
+    Ok(Box::new(Value::Int(a % b)))
+    
+}
+
+
 fn prn(p: Params) -> FResult {
     let toprint = match p.front() {
         Some(v) => Ok(v),
@@ -166,3 +194,61 @@ fn string(p: Params) -> FResult {
     
     Ok(Box::new(Value::Str(string)))
 }
+
+fn lisp_cons(p: Params) -> FResult {
+    if p.len() != 2 {
+        return Err(Errors::ArityError(p.len() as i32, 2));
+    }
+    let mut p = p;
+    let first = p.pop_front().unwrap();
+    let rest = p.pop_front().unwrap();
+        
+    let new  = match rest.deref() {
+        Value::List(lst) => Ok(cons(first.deref().clone(), lst.deref().clone())),
+        _ => Err(Errors::TypeError),
+    }?;
+
+    Ok(Box::new(Value::List(new)))
+
+}
+
+fn cons(first: Value, rest: LinkedList<RValue>) -> LinkedList<RValue>{
+    let mut n = LinkedList::new();
+    n.push_front(Box::new(first));
+    for v in rest {
+        n.push_back(v);
+    }
+    
+    n
+}
+
+fn first(p: Params) -> FResult {
+    match p.front() {
+        Some(b) => match b.deref() {
+            Value::List(lst) => match lst.front() {
+                Some(v) => Ok(v.clone()),
+                None => Ok(Box::new(Value::Nil)),
+            }
+            _ => Err(Errors::TypeError),
+        }
+
+        None => Err(Errors::ArityError(0, 1))
+    }
+}
+
+fn rest(p: Params) -> FResult {
+    match p.front() {
+        Some(b) => match b.deref() {
+            Value::List(lst) => {
+                let mut lst = lst.clone();
+                lst.pop_front();
+                Ok(Box::new(Value::List(lst)))   
+            },
+            _ => Err(Errors::TypeError),
+        }
+        _ => Err(Errors::ArityError(0,1)),
+    }
+        
+}
+
+    

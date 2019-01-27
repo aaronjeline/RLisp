@@ -12,5 +12,7 @@ RLisp is a simple Lisp intepreter written in Rust. I'm writing it for the purpos
    * `fn` Create functions
    * `eval` Evaluate the given expression
    * `quote` Don't evaluate the given expression
+   * `quasiquote` and `unquote`
+   
    
 

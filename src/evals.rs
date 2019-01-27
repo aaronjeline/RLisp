@@ -27,15 +27,56 @@ pub fn eval_list(input: LinkedList<RValue>, env: &mut Env) -> FResult{
     // Keyword detection here
     match first.deref() {
         Value::Define => eval_define(list, env),
+        Value::Defmacro => eval_defmacro(list, env),
         Value::Let => eval_let(list, env),
         Value::Do => eval_do(list, env),
         Value::If => eval_if(list, env),
         Value::Fn => eval_fn(list),
         Value::Eval => eval_eval(list, env),
         Value::Quote => eval_quote(list),
+        Value::Quasiquote => eval_qquote(list, env),
         _ => handle_function(recr_eval_list(list, env)?, env),
     }
 
+}
+
+
+fn eval_qquote(list: LinkedList<RValue>, env: &mut Env) -> FResult {
+    let mut list = list;
+    list.pop_front(); // Remove `qquote`
+    let target = list.pop_front().unwrap();
+    recr_qquote(target, env)
+}
+
+fn recr_qquote(val: RValue, env: &mut Env) -> FResult {
+    match val.deref() {
+        Value::List(list) => {
+            let list = list.clone();
+            if list.len() == 0 {
+                Ok(Box::new(Value::List(list)))
+            } else { // Check for unquotes
+                let mut list = list;
+                let first = list.front().unwrap();
+                match first.deref() {
+                    Value::Unquote => { // Do evaluate
+                        list.pop_front();
+                        let target = list.pop_front().unwrap();
+                        EVAL(target, env)
+                    },
+                    // recurse to look for unquotes
+                    _ => {
+                        let checked: Result<LinkedList<RValue>, Errors>  = list
+                            .into_iter()
+                            .map(
+                                |expr| recr_qquote(expr, env))
+                            .collect();
+                        Ok(Box::new(Value::List(checked?)))
+                    }
+                }
+            }
+        },
+       v => Ok(Box::new(v.clone()))
+    }
 }
 
 fn eval_quote(lst: LinkedList<RValue>) -> FResult {
@@ -70,6 +111,34 @@ fn eval_let(list: LinkedList<RValue>, env: &mut Env) -> FResult{
         None => Err(Errors::FormError),
     }?;
     EVAL(body, &mut scope)
+}
+
+fn eval_defmacro(list: LinkedList<RValue>, env: &mut Env) -> FResult {
+    let mut list = list;
+    list.pop_front(); // Remove 'define'
+    let name = match list.pop_front() {
+        Some(v) => match *v {
+            Value::Symbol(s) => Ok(s),
+            _ => Err(Errors::TypeError),
+        }
+        _ => panic!("Empty list in define()"),
+    }?;
+    let target = match list.pop_front() {
+        Some(b) => Ok(b),
+        None => Err(Errors::FormError),
+    }?;
+    let target = EVAL(target, env)?;
+    let target = match target.deref() {
+        Value::DynFunc(df) => Ok(Value::DynFunc(to_macro(df.clone()))),
+        _ => Err(Errors::TypeError),
+    }?;
+
+    env.set(name, target);
+    Ok(Box::new(Value::Nil))
+}
+
+fn to_macro(f: DynamicFunction) -> DynamicFunction {
+    DynamicFunction::new_macro(f.parameters, f.body)
 }
 
 fn eval_define(list: LinkedList<RValue>, env: &mut Env) -> FResult {

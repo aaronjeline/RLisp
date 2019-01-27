@@ -25,6 +25,8 @@ fn determinte_symbol(s: String) -> Value {
         "fn" => Value::Fn,
         "eval" => Value::Eval,
         "quote" => Value::Quote,
+        "quasiquote" => Value::Quasiquote,
+        "unquote" => Value::Unquote,
         _ => Value::Symbol(s)
     }
 }
@@ -35,12 +37,25 @@ named!(pub parse_value<Input, RValue>,
                  parse_symbol   |
                  parse_int      |
                  parse_quote    |
-                 parse_list), |v| Box::new(v)));
+                 parse_qquote   |
+                 parse_uquote   |
+                 parse_list),
+            |v| Box::new(v)));
 
 named!(parse_quote<Input, Value>, ws!(do_parse!(
     _start: tag!("'") >>
     quoted: parse_value >>
     (Value::List(vec![Box::new(Value::Quote), quoted].into_iter().collect())))));
+
+named!(parse_qquote<Input, Value>, ws!(do_parse!(
+    _stat: tag!("`") >>
+    quoted: parse_value >>
+    (Value::List(vec![Box::new(Value::Quasiquote), quoted].into_iter().collect())))));
+
+named!(parse_uquote<Input, Value>, ws!(do_parse!(
+    _stat: tag!(",") >>
+    quoted: parse_value >>
+    (Value::List(vec![Box::new(Value::Unquote), quoted].into_iter().collect())))));
 
 named!(parse_list<Input, Value>, ws!(do_parse!(
     _start: tag!("(") >>

@@ -13,7 +13,7 @@ use crate::builtins::build_init_env;
 use crate::parsing::*;
 use crate::evals::*;
 use crate::stdlib::*;
-    
+
 fn main() {
     let stdin = io::stdin();
     let mut env = build_init_env();
@@ -39,7 +39,6 @@ fn main() {
         }
     }
     print!("\n");
-    
 }
 
 
@@ -50,7 +49,6 @@ fn run_std_lib(env: &mut Env) -> Result<(),Errors> {
     }
     Ok(())
 }
-    
 
 #[allow(non_snake_case)]
 fn READ(input: String) -> Result<RValue, Errors>{

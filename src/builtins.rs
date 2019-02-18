@@ -25,6 +25,7 @@ pub fn build_init_env() -> Env {
     env
 }
 
+
 fn plus(p: Params) -> FResult {
     let mut sum = 0;
     for b in p {
@@ -66,7 +67,7 @@ fn modulo(p: Params) -> FResult {
     }?;
 
     Ok(Box::new(Value::Int(a % b)))
-    
+
 }
 
 

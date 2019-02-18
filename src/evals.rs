@@ -35,11 +35,15 @@ pub fn eval_list(input: LinkedList<RValue>, env: &mut Env) -> FResult{
         Value::Eval => eval_eval(list, env),
         Value::Quote => eval_quote(list),
         Value::Quasiquote => eval_qquote(list, env),
+        Value::Env => eval_env(list, env),
         _ => handle_function(recr_eval_list(list, env)?, env),
     }
 
 }
 
+fn eval_env(list: LinkedList<RValue>, env: &mut Env) -> FResult {
+    Ok(Box::new(env.unwrap()))
+}
 
 fn eval_qquote(list: LinkedList<RValue>, env: &mut Env) -> FResult {
     let mut list = list;

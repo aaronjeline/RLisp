@@ -41,18 +41,27 @@ impl Env {
     pub fn add_all(&mut self, ss: LinkedList<String>, vs: LinkedList<RValue>) -> Result<(),Errors> {
         if ss.len() != vs.len() {
             return Err(Errors::ArityError(ss.len() as i32, vs.len() as i32));
-        } 
-        
+        }
+
         for (symbol, value) in ss.iter().zip(vs) {
             self.set(symbol.to_string(), (*value).clone());
         }
         return Ok(());
     }
 
-
-
-
+    pub fn unwrap(&self) -> Value {
+        let mut r = LinkedList::new();
+        for (symbol,value) in &self.contents {
+            let mut this = LinkedList::new();
+            this.push_back(Box::new(Value::Symbol(symbol.to_string())));
+            this.push_back(Box::new(value.clone()));
+            r.push_back(Box::new(Value::List(this)))
+        }
+        Value::List(r)
+    }
 }
+
+
 
 #[derive(Debug)]
 pub enum Errors {
@@ -61,6 +70,7 @@ pub enum Errors {
     SymbolNotFound (String),
     NotAFunction,
     FormError,
+    // got, expected
     ArityError (i32, i32),
     IOError (String),
 }
@@ -107,11 +117,11 @@ pub enum Value {
     Unquote,
     Function (fn(Params) -> FResult),
     DynFunc (DynamicFunction),
+    Env,
 }
 
 impl Value {
     pub fn equals(a: &Value, b: &Value) -> Result<bool, Errors> {
-        
         match (a, b) {
             (Value::Int(a), Value::Int(b)) => Ok(a == b),
             (Value::Str(a), Value::Str(b)) => Ok(a == b),
@@ -167,6 +177,7 @@ impl ToString for Value {
             Value::Quote => String::from("quote"),
             Value::Quasiquote => String::from("quasiquote"),
             Value::Unquote => String::from("unquote"),
+            Value::Env => String::from("env"),
         }
     }
 }

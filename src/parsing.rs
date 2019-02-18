@@ -27,6 +27,7 @@ fn determinte_symbol(s: String) -> Value {
         "quote" => Value::Quote,
         "quasiquote" => Value::Quasiquote,
         "unquote" => Value::Unquote,
+        "env" => Value::Env,
         _ => Value::Symbol(s)
     }
 }
